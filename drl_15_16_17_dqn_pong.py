@@ -141,7 +141,7 @@ print(">>>Training starts at ", datetime.datetime.now())
 MEAN_REWARD_BOUND = 19.0
 
 gamma = 0.99
-batch_size = 128
+batch_size = 64
 replay_size = 30000
 learning_rate = 1e-4
 sync_target_frames = 1000
