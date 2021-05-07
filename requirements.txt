@@ -5,7 +5,6 @@ opencv-python
 gym[atari]
 onnx
 onnxruntime
-xdpyinfo
 tqdm
 onnx
 onnx2pytorch

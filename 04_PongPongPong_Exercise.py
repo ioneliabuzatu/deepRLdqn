@@ -22,6 +22,9 @@ from tqdm import tqdm
 import wandb
 import config
 
+import os
+os.environ["PATH"] += os.pathsep + "/usr/bin/xdpyinfo"
+
 Transition = namedtuple("Transition", ["state", "action", "reward", "next_state", "done"])
 
 
