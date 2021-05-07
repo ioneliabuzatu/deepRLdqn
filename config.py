@@ -1,5 +1,8 @@
 import experiment_buddy
 
+optimizer = "adam"
+momentum = 0.95
+
 experiment_buddy.register(locals())
 tensorboard = experiment_buddy.deploy(
     "mila",

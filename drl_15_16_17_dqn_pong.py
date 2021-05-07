@@ -113,14 +113,13 @@ class Agent:
         self.state = env.reset()
         self.total_reward = 0.0
 
-    def play_step(self, net, epsilon=0.0, device="cpu"):
+    def play_step(self, net, epsilon=0.0):
 
         done_reward = None
         if np.random.random() < epsilon:
             action = env.action_space.sample()
         else:
             state_a = self.state
-            # state_v = torch.tensor(state_a).to(device)
             q_vals_v = net(state_a)
             _, act_v = torch.max(q_vals_v, dim=1)
             action = int(act_v.item())
@@ -142,13 +141,13 @@ print(">>>Training starts at ", datetime.datetime.now())
 MEAN_REWARD_BOUND = 19.0
 
 gamma = 0.99
-batch_size = 32
-replay_size = 10000
+batch_size = 64
+replay_size = 30000
 learning_rate = 1e-4
 sync_target_frames = 1000
 replay_start_size = 10000
 
-eps_start = 1.0
+epsilon = 1.0
 eps_decay = .999985
 eps_min = 0.02
 tau = 1e-3
@@ -166,9 +165,10 @@ target_net = DQNNetwork_atari(num_actions=num_actions).to(device)
 buffer = ExperienceReplay(replay_size)
 agent = Agent(env, buffer)
 
-epsilon = eps_start
-
-optimizer = optim.Adam(net.parameters(), lr=learning_rate)
+if config.optimizer == "adam":
+    optimizer = optim.Adam(net.parameters(), lr=learning_rate)
+else:
+    optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=config.momentum)
 total_rewards = []
 frame_idx = 0
 

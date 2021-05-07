@@ -1,0 +1,16 @@
+program: train.py
+method: random
+metric:
+  goal: maximize
+  name: reward
+parameters:
+  learning_rate:
+    min: 0.00001
+    max: 0.1
+  optimizer:
+    values: ["adam", "sgd"]
+  momentum:
+    min: 0.9
+    max: 0.999
+  batch_size:
+    values: [32,64,128,256]
