@@ -6,7 +6,7 @@ metric:
 parameters:
   learning_rate:
     min: 0.00001
-    max: 0.1
+    max: 0.01
   optimizer:
     values: ["adam", "sgd"]
   momentum:

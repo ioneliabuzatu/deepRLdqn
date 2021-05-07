@@ -241,4 +241,17 @@ while True:
 
     soft_update(net, target_net, tau)
 
+    if len(total_rewards) % 50 == 0:
+        torch.save({"dqn_state_model": net.state_dict()}, "./checkpoint_model")
+        wandb.save(f"./checkpoint_model")
+    #     torch.save({
+    #         "dqn_state_model": net.state_dict(),
+    #         "dqn_target_state_model": target_net.state_dict(),
+    #         "epsilon": epsilon,
+    #         "buffer": buffer,
+    #         "optimizer": optimizer,
+    #     },
+    #         f"checkpoint")
+
+
 print(">>>Training ends at ", datetime.datetime.now())
