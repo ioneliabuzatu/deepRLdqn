@@ -25,6 +25,9 @@ import config
 import os
 os.environ["PATH"] += os.pathsep + "/usr/bin/xdpyinfo"
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print("Device:", device)
+
 Transition = namedtuple("Transition", ["state", "action", "reward", "next_state", "done"])
 
 
@@ -53,12 +56,12 @@ class ReplayBuffer():
 
         states_mb, a_, reward_mb, next_states_mb, done_mb = map(np.array, zip(*minibatch))
 
-        mb_reward = torch.from_numpy(reward_mb).cuda()
-        mb_done = torch.from_numpy(done_mb.astype(int)).cuda()
+        mb_reward = torch.from_numpy(reward_mb).to(device)
+        mb_done = torch.from_numpy(done_mb.astype(int)).to(device)
 
         a_mb = np.zeros((a_.size, self.num_actions))
         a_mb[np.arange(a_.size), a_] = 1
-        mb_a = torch.from_numpy(a_mb).cuda()
+        mb_a = torch.from_numpy(a_mb).to(device)
 
         return states_mb, mb_a, mb_reward, next_states_mb, mb_done
 
@@ -91,7 +94,7 @@ class DQNNetwork_atari(nn.Module):
 
     def forward(self, x):
         # output forward should always be q values for all actions
-        x = torch.tensor(x, dtype=torch.float).cuda()
+        x = torch.tensor(x, dtype=torch.float).to(device)
         if len(x.size()) == 3:
             x = x.unsqueeze(dim=0)
         x = self.cnn_layer_1(x)
@@ -139,11 +142,19 @@ def main():
     eval_episode = 100
     num_eval = 10
     tau = 1e-3  # hyperparameter for updating the target network
-    learning_rate = 0.0001
+    learning_rate = 1e-4
     update_after = 200  # update after num time steps
-    epsilon_decay = 10 ** 5
+    # epsilon_decay = 10 ** 5
+    epsilon_decay = .999985
     epsilon_ub = 1.0
     epsilon_lb = 0.02
+
+    batch_size = 32
+    replay_size = 10000
+    sync_target_frames = 1000
+    replay_start_size = 10000
+    eps_start = 1.0
+    eps_min = 0.02
 
     # DO NOT MAKE CHANGES HERE
     # Initialize environment
@@ -157,35 +168,37 @@ def main():
 
     set_seed(env, 0)
 
-    dqn = DQNNetwork_atari(num_actions=num_actions).cuda()
-    dqn_target = DQNNetwork_atari(num_actions=num_actions).cuda()
+    dqn = DQNNetwork_atari(num_actions=num_actions).to(device)
+    dqn_target = DQNNetwork_atari(num_actions=num_actions).to(device)
+    buffer = ReplayBuffer(num_actions=num_actions, memory_len=buffer_size)
 
-    # try:
-    #     load_checkpoint = torch.load(checkpoint_path)
-    #     dqn.load_state_dict(load_checkpoint["dqn_state_model"])
-    #     dqn_target.load_state_dict(load_checkpoint["dqn_target_state_model"])
-    #     epsilon_ub = load_checkpoint["epsilon"]
-    #     buffer = load_checkpoint["buffer"]
-    # except FileNotFoundError:
-    #     print("No checkpoint found")
+    try:
+        load_checkpoint = torch.load(checkpoint_path)
+        dqn.load_state_dict(load_checkpoint["dqn_state_model"])
+        dqn_target.load_state_dict(load_checkpoint["dqn_target_state_model"])
+        epsilon_ub = load_checkpoint["epsilon"]
+        buffer = load_checkpoint["buffer"]
+    except FileNotFoundError:
+        print("No checkpoint found")
 
     # Train the agent using DQN for Pong
     returns = []
     returns_50 = deque(maxlen=50)
     losses = []
-    buffer = ReplayBuffer(num_actions=num_actions, memory_len=buffer_size)
     optimizer = optim.Adam(dqn.parameters(), lr=learning_rate)
     mse = torch.nn.MSELoss()
 
+    epsilon = epsilon_ub
     state = env.reset()
     timesteps = 0
     dones = 0
-    for i in tqdm(range(num_episodes)):
+    for i in range(num_episodes):
         ret = 0
         done = False
         while not done:
             # Decay epsilon :
-            epsilon = max(epsilon_lb, epsilon_ub - timesteps / epsilon_decay)
+            # epsilon = max(epsilon_lb, epsilon_ub - timesteps / epsilon_decay)
+            epsilon = max(epsilon * epsilon_decay, eps_min)
             # action selection
             if np.random.choice([0, 1], p=[1 - epsilon, epsilon]) == 1:
                 a = np.random.randint(low=0, high=num_actions, size=1)[0]
@@ -222,7 +235,8 @@ def main():
             if done:
                 state = env.reset()
                 print(f"Episode: {i} {ret} epsilon={epsilon}")
-                wandb.log({"Reward": ret, "step_reward": i, "epsilon": epsilon})
+                wandb.log({"Reward": ret}, step=timesteps)
+                wandb.log({"step_reward": i, "epsilon": epsilon})
                 dones += 1
                 break
         returns.append(ret)
