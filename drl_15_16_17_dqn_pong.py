@@ -148,7 +148,7 @@ learning_rate = 1e-4
 sync_target_frames = 1000
 replay_start_size = 10000
 
-eps_start = 1.0
+epsilon = 1.0
 eps_decay = .999985
 eps_min = 0.02
 tau = 1e-3
@@ -165,8 +165,6 @@ target_net = DQNNetwork_atari(num_actions=num_actions).to(device)
 
 buffer = ExperienceReplay(replay_size)
 agent = Agent(env, buffer)
-
-epsilon = eps_start
 
 optimizer = optim.Adam(net.parameters(), lr=learning_rate)
 total_rewards = []
