@@ -238,6 +238,7 @@ def main():
                 "dqn_target_state_model": dqn_target.state_dict(),
                 "epsilon": epsilon,
                 "buffer": buffer,
+                "optimizer": optimizer,
             },
                 f"checkpoint")
 

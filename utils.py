@@ -13,6 +13,14 @@ from gym import spaces
 Transition = namedtuple("Transition", ["state", "action", "reward", "next_state", "done"])
 
 
+def soft_update(local_model, target_model, tau):
+    """Soft update model parameters.
+    θ_target = τ*θ_local + (1 - τ)*θ_target
+    """
+    for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
+        target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
+
+
 class NoopResetEnv(gym.Wrapper):
     def __init__(self, env, noop_max=30):
         """Sample initial states by taking random number of no-ops on reset.
