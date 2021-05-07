@@ -24,14 +24,14 @@ import config
 
 import os
 from psutil import virtual_memory
-os.environ["PATH"] += os.pathsep + "/usr/bin/xdpyinfo"
+# os.environ["PATH"] += os.pathsep + "/usr/bin/xdpyinfo"
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print("Device:", device, f"\nRAM: {virtual_memory().total/(1024.**3)}")
 
 Transition = namedtuple("Transition", ["state", "action", "reward", "next_state", "done"])
 
-#
+
 # # Replay buffer- stores a transitions - state, action, reward, next_state
 # # DQN network class - neural network - CNN -> linear layers
 # #                   - Add forward should give for a state and action pair, the expected return from t to T
