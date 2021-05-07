@@ -193,7 +193,7 @@ def main():
             next_state, r, done, info = env.step(a)
             ret = ret + r
 
-            buffer.add(state, a, r, next_state, done)
+            buffer.add(state.detach(), a.detach(), r.detach(), next_state.detach(), done.detach())
 
             state = next_state
             timesteps = timesteps + 1
@@ -238,6 +238,7 @@ def main():
                 "dqn_target_state_model": dqn_target.state_dict(),
                 "epsilon": epsilon,
                 "buffer": buffer,
+                "optimizer": optimizer,
             },
                 f"checkpoint")
 
