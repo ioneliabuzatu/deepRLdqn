@@ -24,7 +24,7 @@ import config
 
 import os
 from psutil import virtual_memory
-os.environ["PATH"] += os.pathsep + "/usr/bin/xdpyinfo"
+# os.environ["PATH"] += os.pathsep + "/usr/bin/xdpyinfo"
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print("Device:", device, f"\nRAM: {virtual_memory().total/(1024.**3)}")
