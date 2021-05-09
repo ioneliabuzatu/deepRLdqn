@@ -138,10 +138,10 @@ class Agent:
 
 print(">>>Training starts at ", datetime.datetime.now())
 
-MEAN_REWARD_BOUND = 19.0
+MEAN_REWARD_BOUND = 20.0
 
 gamma = 0.99
-batch_size = 128
+batch_size = 64
 replay_size = 30000
 learning_rate = 1e-4
 sync_target_frames = 1000
@@ -241,17 +241,18 @@ while True:
 
     soft_update(net, target_net, tau)
 
-    if len(total_rewards) % 50 == 0:
-        torch.save({"dqn_state_model": net.state_dict()}, "./checkpoint_model")
-        wandb.save(f"./checkpoint_model")
-    #     torch.save({
-    #         "dqn_state_model": net.state_dict(),
-    #         "dqn_target_state_model": target_net.state_dict(),
-    #         "epsilon": epsilon,
-    #         "buffer": buffer,
-    #         "optimizer": optimizer,
-    #     },
-    #         f"checkpoint")
+    if len(total_rewards) % 30 == 0:
+        # torch.save({"dqn_state_model": net.state_dict()}, "./checkpoint_model")
+        # wandb.save(f"./checkpoint_model")
+        torch.save({
+            "dqn_state_model": net.state_dict(),
+            # "dqn_target_state_model": target_net.state_dict(),
+            "epsilon": epsilon,
+            # "buffer": buffer,
+            "optimizer": optimizer,
+        },
+            f"checkpoint")
+        wandb.save(f"./checkpoint")
 
 
 print(">>>Training ends at ", datetime.datetime.now())
